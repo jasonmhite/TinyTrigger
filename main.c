@@ -1,25 +1,52 @@
-// main.c
-// 
-// Active low edge trigger
-//
-// Input is pin 2 (PCINT3/PB1)
-// Logic pulse on pin 2 for rising edge
-
 #include <avr/io.h>
 #include <avr/sleep.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
 
 #define PULSE_DURATION 50
-#define N_DEBOUNCE 5
-#define DEBOUNCE_TIME 2
+#define INPUT_PIN PCINT3
+#define OUTPUT_PIN PB0
 
-int edge = 0;
+#define DEBOUNCE_TIME 200
+
+// Clear bit
+#ifndef cbi
+#define cbi(sfr, bit) (_SFR_BYTE(sfr) &= ~_BV(bit))
+#endif
+// Set bit
+#ifndef sbi
+#define sbi(sfr, bit) (_SFR_BYTE(sfr) |= _BV(bit))
+#endif
+
+typedef enum { OFF, ON } state_t;
+
+state_t edgeState = OFF;
+
+void pulse() {
+    cbi(PORTB, OUTPUT_PIN);
+    _delay_ms(PULSE_DURATION);
+    sbi(PORTB, OUTPUT_PIN);
+}
+
+ISR(PCINT0_vect) {
+    if (bit_is_set(PINB, INPUT_PIN) && edgeState == OFF) {
+        pulse();
+        edgeState = ON;
+    }
+    else if (bit_is_clear(PINB, INPUT_PIN)) {
+        edgeState = OFF;
+    }
+    
+    _delay_ms(DEBOUNCE_TIME);
+}
 
 void sleep() {
-    GIMSK |= _BV(PCIE);
-    PCMSK |= _BV(PCINT3);
-    ADCSRA &= ~_BV(ADEN);
+    // Set up sleep and interrupts
+    cli();
+
+    sbi(GIMSK, PCIE); // Enable pin change interrupt
+    sbi(PCMSK, INPUT_PIN); // Set it up on input pin
+    cbi(ADCSRA, ADEN); // Turn off the ADC
     set_sleep_mode(SLEEP_MODE_PWR_DOWN);
 
     sleep_enable();
@@ -27,40 +54,21 @@ void sleep() {
     sleep_cpu();
 
     cli();
-    PCMSK &= ~_BV(PCINT3);
+
+    cbi(PCMSK, INPUT_PIN);
     sleep_disable();
-    ADCSRA |= _BV(ADEN);
+    sbi(ADCSRA, ADEN);
 
     sei();
 }
 
-void send_pulse() {
-    PORTB = 0b00000001;
-    _delay_ms(PULSE_DURATION);
-    PORTB = 0b00000000; 
-}
 
-ISR(PCINT0_vect) {
-    // Interrupt function
-    if (bit_is_set(PINB, PB3) && edge == 0) {
-        // Rising edge
-        send_pulse();
-        edge = 1;
-    }
-    else if (bit_is_clear(PINB, PB3)) {
-        edge = 0;
-    }
-    
-    _delay_ms(200);
-}
- 
-int main (void)
-{
-  // set pin 5 to output and pull high
-  DDRB =  0b00000001;
-  PORTB = 0b00000000;
+int main() {
+    // Set ports
+    DDRB = _BV(OUTPUT_PIN);
+    PORTB = _BV(OUTPUT_PIN);
 
-  while (1) { sleep(); }
+    while(1) { sleep(); };
 
-  return 1;
+    return 0;
 }
