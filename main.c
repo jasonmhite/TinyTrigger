@@ -9,8 +9,6 @@
 #define RISING 1
 #define FALLING 2 
 
-///////////////////////////////////////////////////////////////////////
-
 // Clear bit
 #ifndef cbi
 #define cbi(sfr, bit) (_SFR_BYTE(sfr) &= ~_BV(bit))
