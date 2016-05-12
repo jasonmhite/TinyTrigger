@@ -2,7 +2,7 @@
 
 AVR firmware for the ATtiny85 to act as a simple pulse trigger. Can be configured
 at compile time to trigger on rising edge, falling edge or both and also to an
-active high or active low output pulse.
+active high or active low output pulse. Edit `config.h` to configure.
 
 Uses interrupts and sleeps the uC except when a change is detected, so current
 draw is extremely small (few uA).

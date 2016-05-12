@@ -86,9 +86,9 @@ int main() {
     // Set ports
     DDRB = _BV(OUTPUT_PIN);
 #ifdef OFF_HIGH
-    PORTB = _BV(OUTPUT_PIN);
+    sbi(PORTB, OUTPUT_PIN);
 #else
-    PORTB = ~_BV(OUTPUT_PIN);
+    cbi(PORTB, OUTPUT_PIN);
 #endif
 
     while(1) { sleep(); };
