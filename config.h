@@ -7,12 +7,18 @@
 
 // Times in ms
 #define PULSE_DURATION 30
-#define DEBOUNCE_TIME 100
+#define DEBOUNCE_TIME  50  // was 100
 
 // RISING, FALLING, EITHER
 #define TRIGGER_TYPE RISING
+// RISING = being disconnected
+// FALLING = being connected
 
 // If defined, active low, else active high
 #define OFF_HIGH
 
-#endif
+// Pull-up resistor configuration
+// Enable or disable the internal pull-up resistor for the input pin
+#define PULLUP_ENABLED 1
+
+#endif /* __CONFIG_H__ */
