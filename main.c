@@ -91,7 +91,13 @@ int main() {
     cbi(PORTB, OUTPUT_PIN);
 #endif
 
-    while(1) { sleep(); };
+#ifdef PULLUP_ENABLED
+    sbi(PORTB, INPUT_PIN);
+#endif
+
+    while (1) {
+        sleep();
+    };
 
     return 0;
 }
